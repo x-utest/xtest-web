@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="">
+
+<head>
+	<title>身份认证</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<style>
+		html,
+		body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			position: relative
+		}
+
+		.main {
+			display: none;
+			width: 600px;
+			position: absolute;
+			padding: 20px 0 40px;
+			top: 30%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			border: 2px solid #ccc;
+			border-radius: 5px;
+		}
+
+		.main form {
+			display: none;
+			text-align: center
+		}
+
+		.main form .row {
+			padding: 10px
+		}
+
+		.main form .row input {
+			width: 160px;
+			padding: 10px;
+			-webkit-appearance: none;
+			background-color: #fff;
+			background-image: none;
+			border-radius: 4px;
+			border: 1px solid #dcdfe6;
+		}
+
+		.btn {
+			padding: 4px 10px;
+			color: #fff;
+			user-select: none;
+			border-radius: 5px;
+			cursor: pointer;
+			border: 1px solid #ccc;
+		}
+
+		.btn-login,
+		.btn-init {
+			background: #409eff;
+			margin-right: 50px;
+		}
+
+		.btn-clear {
+			background: #d11;
+		}
+
+		#apihost input::-webkit-input-placeholder {
+			color: #c1c1c1
+		}
+
+		#apihost .txt1 {
+			width: 40px
+		}
+
+		#apihost .txt2 {
+			width: 120px
+		}
+
+		#apihost .txt3 {
+			width: 40px
+		}
+		.reset-link{position:fixed;left:10px;top:3px;font-size: 13px;color:#d1d1d1;text-decoration:none}
+	</style>
+
+</head>
+
+<body>
+	<div class="main">
+		<form class="login-form">
+			<h2>系统登录</h2>
+			<div class="row">
+				<label>账号</label>
+				<input type="text" name="user">
+			</div>
+			<div class="row">
+				<label>密码</label>
+				<input type="password" name="password">
+			</div>
+			<div class="row">
+				<span class="btn btn-login">登录</span>
+				<!-- <span class="btn btn-clear">初始化配置</span> -->
+			</div>
+		</form>
+		<form class="init-form">
+			<h2>配置服务器接口</h2>
+			<p>例如 http://example.com:7890</p>
+			<div class="row" id="apihost">
+				<input class="txt1" value="http://" placeholder="http://" spellcheck="false">
+				<input class="txt2" value="" placeholder="127.0.0.1">
+				<input class="txt3" value="" placeholder=":8080">
+			</div>
+			<div class="row">
+				<span class="btn btn-init">确定</span>
+			</div>
+		</form>
+	</div>
+	<a href="/reset.html" class="reset-link">重置系统密码</a>
+	
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+	 crossorigin="anonymous"></script>
+
+	<script>
+		$(function ($) {
+			var apihost = localStorage.apiHost + '', $init = $('.init-form');
+			function checkApi(a) { return /^http(s)?\:\/\//i.test(a) }
+			// if (!checkApi(apihost)) {
+			// 	localStorage.apiHost = '';
+			// 	$init.show().parent().show();
+			// 	var txts = [1, 2, 3].map(function (x) { return $('.txt' + x, $init) });
+			// 	$('.btn-init', $init).click(function () {
+			// 		var api = txts.map(function (x) { return x.val() }).join('');
+			// 		if (!checkApi(api)) { return alert('请输入正确的接口地址') }
+			// 		document.cookie = 'token=;expires=' + (new Date())
+			// 		return localStorage.apiHost = api + '/', location.href = '/'
+			// 	});
+			// 	return
+			// }
+			var $login = $('.login-form').show();
+			$login.parent().show()
+			$('input', $login).keyup(function (e) { e.keyCode == 13 && doLogin() })
+			$('.btn-login').click(doLogin);
+			$('.btn-clear').click(function () {
+				if (!confirm('确定要重新配置吗')) { return }
+				return localStorage.apiHost = '', location.reload();
+			});
+
+			function doLogin() {
+				var data = {};
+				$('input', $login).each(function () { data[this.name] = this.value });
+				if (!data.user || !data.password) { return alert('请完成输入') }
+				$.post(apihost + 'account/user-login/', JSON.stringify(data), function (res) {
+					try {
+						res = JSON.parse(res);
+						var token;
+						if (res.code == 200 && (token = (res.data || {}).token)) {
+							document.cookie = 'token=' + token;
+							location.href = '/#'
+						} else {
+							alert('登录失败，请检查输入')
+						}
+					} catch (e) {
+						alert('登录失败，请检查输入')
+					}
+
+				}).error(function () {
+					alert('登录异常')
+				});
+			}
+		})
+	</script>
+</body>
+
+</html>

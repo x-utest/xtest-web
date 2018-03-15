@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+	<title>重置密码</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<style>
+		html,
+		body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			position: relative;
+			background: #f1f1f1;
+		}
+
+		.main {
+			width: 600px;
+			position: absolute;
+			padding: 20px 0 40px;
+			top: 30%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			border: 2px solid #fff;
+			border-radius: 5px;
+		}
+
+		.main form {
+			text-align: center
+		}
+
+		.main form .row {
+			padding: 10px
+		}
+
+		.main form .row input {
+			width: 160px;
+			padding: 10px;
+			-webkit-appearance: none;
+			background-color: #fff;
+			background-image: none;
+			border-radius: 4px;
+			border: 1px solid #dcdfe6;
+		}
+
+		.btn {
+			padding: 4px 10px;
+			color: #fff;
+			user-select: none;
+			border-radius: 5px;
+			cursor: pointer;
+			border: 1px solid #ccc;
+		}
+
+		.btn-set {
+			background: #409eff;
+			margin-right: 50px;
+		}
+
+		.btn-clear {
+			background: #d11;
+		}
+	</style>
+
+</head>
+
+<body>
+	<div class="main">
+		<form class="form" autocomplete="off">
+			<h2>重置管理密码</h2>
+			<div class="row">
+				<label>新密码</label>
+				<input type="password" name="new_pwd" autocomplete="off">
+			</div>
+			<div class="row">
+				<label>令&nbsp;&nbsp;牌&nbsp;</label>
+				<input type="password" name="s_token" autocomplete="off" placeholder="建议粘贴">
+			</div>
+			<div class="row">
+				<span class="btn btn-set">设置</span>
+				<!-- <span class="btn btn-clear">初始化配置</span> -->
+			</div>
+		</form>
+
+	</div>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+	 crossorigin="anonymous"></script>
+
+	<script>
+		$(function ($) {
+			var apihost = localStorage.apiHost + '', $form = $('.form');
+
+			$('.btn-set').click(doLogin);
+			function doLogin() {
+				function fail(e) { return alert('设置失败，请检查输入') }
+				var data = {}, hasEmpty;
+				$('input', $form).each(function () {
+					data[this.name] = this.value;
+					!hasEmpty && (hasEmpty = !this.value)
+				});
+				if (hasEmpty) { return alert('请完成输入') }
+				$.post(apihost + 'admin/reset-admin-password/', JSON.stringify(data), function (res) {
+					try {
+						res = JSON.parse(res);
+						var token;
+						if (res.code == 200) {
+							location.href = '/login.html'
+						} else {
+							fail()
+						}
+					} catch (e) {
+						fail()
+					}
+
+				}).error(function () {
+					fail('请求发生错误！')
+				});
+			}
+		})
+	</script>
+
+</html>

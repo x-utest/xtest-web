@@ -1,0 +1,7 @@
+.idea/
+node_modules
+.DS_Store
+.vs/
+#the out put package
+dist/
+src/config.js
