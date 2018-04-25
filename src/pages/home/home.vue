@@ -22,13 +22,12 @@
 
 </script>
 
-<style scoped lang=less           rel="stylesheet/less">
+<style scoped lang=less rel="stylesheet/less">
     @import '../../assets/public.less';
-
     .home {
         position: relative;
+        height: 100%;
         background-color: #F6F9F9;
-        height: 100vh;
         .date-picker {
             padding-left: 2*@ggd-grid-width+2;
             padding-top: 4*@ggd-grid-width;

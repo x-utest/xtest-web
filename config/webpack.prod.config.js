@@ -1,6 +1,3 @@
-/**
- * Created by qiankn on 2017/1/13.
- */
 // NodeJS中的Path对象，用于处理目录的对象，提高开发效率。
 var webpack = require('webpack');
 var path = require('path');
@@ -16,10 +13,16 @@ var vueConfig = require('./vue-loader.config');
 module.exports = {
     // 入口文件地址，不需要写完，会自动查找
     entry: {
+        libs: [
+            //path.resolve(__dirname, '../src/assets/libs/jquery-2.1.4.min.js'),
+            path.resolve(__dirname, '../src/assets/libs/vue.js')
+        ],
         index: path.resolve(__dirname, '../src/main.js'),
         share: path.resolve(__dirname, '../src/entries/share/main.js'),
         projshare: path.resolve(__dirname, '../src/entries/testChart/main.js'),
+        tvExhib: path.resolve(__dirname, '../src/entries/tv-report/main.js'),
         login: path.resolve(__dirname, '../src/login.js'),
+        config: path.resolve(__dirname, '../src/config.js'),
         vendors: ['vue', 'vue-router', 'vuex', 'es6-promise']
     },
     // 输出
@@ -123,13 +126,29 @@ module.exports = {
             inject: 'body'
         }),
         new HtmlWebpackPlugin({
-            title: '登录',
-            favicon: path.resolve(__dirname, '../src/assets/img/favicon.ico'),
-            template: './src/login.html',
-            filename: 'login.html',
-            chunks: ['login', 'vendors'],
+            title: '大电视展示',
+            template: './src/template.html',
+            filename: 'TV-Exhibition.html',
+            chunks: ['tvExhib', 'vendors'],
             hash: true,
             inject: 'body'
+        }),
+        new HtmlWebpackPlugin({
+            title: '登录',
+            template: './src/login.html',
+            filename: 'login.html',
+            hash: true,
+            chunks: ['login', 'config', 'libs', 'vendors'],
+            inject: 'body',
+            minify: {
+                removeComments: true, //移除HTML中的注释
+                collapseWhitespace: true, //删除空白符与换行符
+                // 为了使GAEA能正确识别script, 保留引号
+                // removeAttributeQuotes: true,
+                minifyJS: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true
+            }
         }),
         new HtmlWebpackPlugin({
             title: '重置',

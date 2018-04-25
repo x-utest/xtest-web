@@ -88,9 +88,7 @@ export default {
         vm.$alert("创建账号异常", "提示", { type: "error" });
       }
       vm.$http
-        .get(`${vm.serverUrl}account/account-init/`, {
-          params: { token: vm.token }
-        })
+        .get(`${vm.serverUrl}account/account-init/`)
         .then(res => {
           vm.isloading = !1;
           if (isOK(res)) {

@@ -105,7 +105,12 @@ export default {
         .then(res => {
           vm.isloading = !1;
           if (isOK(res)) {
-            vm.data = res.data.data.page_data;
+            vm.data = res.data.data.page_data.map(x => {
+              if (!x.id) {
+                x.id = x._id;
+              }
+              return x;
+            });
             vm.totalPage = res.data.data.page_total_cnts;
           } else {
             onfail();
@@ -160,27 +165,6 @@ export default {
             })
         )
         .catch(_ => _);
-
-      // function doShare() {
-      //     vm.isloading = !0;
-      //     function onfail() {
-      //         vm.isloading = !1;
-      //         vm.$alert('分享项目发生错误', '提示', { type: 'error' })
-      //     }
-      //     axios.get(`${serverUrl}share/get-utest-share-link/`, {
-      //         params: {
-      //             rep_id: _id,
-      //             token: vm.token
-      //         }
-      //     }).then(res => {
-      //         vm.isloading = !1;
-      //         if (isOK(res)) {
-      //             vm.dialogVisible = true;
-      //             vm.message = "分享链接";
-      //             vm.url = res.data.data.share_url
-      //         } else { onfail() }
-      //     }).catch(onfail)
-      // }
     },
     getProject() {
       var vm = this;
@@ -191,7 +175,12 @@ export default {
         .then(res => {
           var proj = res.data.page_data;
           proj.unshift({ project_name: "全部项目" });
-          vm.projectItem = proj;
+          vm.projectItem = proj.map(x => {
+            if (!x.id) {
+              x.id = x._id;
+            }
+            return x;
+          });
         });
     }
   },
@@ -207,7 +196,6 @@ export default {
 
 .decision {
   background-color: #f6f9f9;
-  height: 100vh;
   :host {
     flex: auto;
     text-align: center;

@@ -1,6 +1,3 @@
-/**
- * Created by 张瑞年 on 2017/4/28.
- */
 export default {
     title: {
         text: '规则特征',

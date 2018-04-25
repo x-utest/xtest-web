@@ -26,13 +26,15 @@ import ggdNav from "./components/ggd-nav.vue";
 import gttHeader from "./components/header.vue";
 import gttFooter from "./components/footer.vue";
 import { mapState, mapMutations, mapActions } from "vuex";
+
 export default {
   data() {
     return {};
   },
   methods: {
     ...mapMutations([
-      "SET_TOKEN" // 映射 this.increment() 为 this.$store.commit('increment')
+      "SET_TOKEN", // 映射 this.increment() 为 this.$store.commit('increment')
+      "SET_LoginUser"
     ])
   },
   components: {
@@ -51,11 +53,19 @@ export default {
       return vm.$router.push({ path: "/server-statu", query: {} });
     }
 
-    function onfail() {
+    function onfail(e) {
       vm.SET_TOKEN("");
+      if (e) {
+        return vm
+          .$alert("服务器异常，请联系管理员或稍后再试", "提示", {
+            type: "error"
+          })
+          .catch(e => 1);
+      }
       vm
         .$alert("用户信息无效，请重新登陆", "提示", { type: "error" })
-        .then(jumplogin);
+        .then(jumplogin)
+        .catch(e => 1);
     }
     vm.SET_TOKEN(token);
     vm.$http
@@ -67,7 +77,8 @@ export default {
         if (!isOK(res)) {
           return onfail();
         }
-        vm.loginUser.userName = res.data.data.nickname;
+        var user = res.data.data;
+        vm.SET_LoginUser(user);
         cookie.set(k, token, {
           expires: 7, // expires in one week
           path: "/"
@@ -81,13 +92,16 @@ export default {
 #app {
   display: flex;
   flex-direction: column;
+  height: 100%;
   .main {
     flex: 1;
     margin-top: 40px;
     margin-left: 200px;
+    height: calc(~"100% - 40px");
   }
   .content {
     display: flex;
+    height: 100%;
   }
 }
 </style>

@@ -4,10 +4,10 @@
         </div>
         <div class="container">
             <h1>判定测试详细信息
-                        <el-popover title="手机扫描二维码访问当前分享页面" ref="QRpopover"  placement="bottom"  trigger="click">
+    <el-popover title="手机扫描二维码访问当前分享页面" ref="QRpopover"  placement="bottom"  trigger="click">
    <div id="urlQrcode" draggable="false" style="padding:10px;"></div>
 </el-popover>
-                <el-button class="btn-share" type="info" size="large" icon="share" v-popover:QRpopover @click="shareQrcode">手机二维码访问</el-button>
+  <el-button class="btn-share" type="info" size="large" icon="share" v-popover:QRpopover @click="shareQrcode">手机二维码访问</el-button>
             </h1>
             <div class="main">
                 <table class="tb1">
@@ -97,18 +97,16 @@
         </el-dialog>   
         <div class="footer">
             CopyRight©2017 版权所有 版本号: 10.0.2
-    
         </div>
-    </div>
-</template>
+ </div></template>
 <script>
 import axios from "axios";
 import gttHeader from "../../components/header.vue";
 import gttFooter from "../../components/footer.vue";
 import failuresImg from "../../assets/img/failures.png";
 import errorsImg from "../../assets/img/errors.png";
-import Qrcode from "../../assets/qrcode.min.js";
-import {queryParser} from "../../assets/utils";
+import Qrcode from "../../assets/qrcode.js";
+import { queryParser } from "../../assets/utils";
 import { mapState } from "vuex";
 import { apiHost as serverUrl } from "../../config";
 var qs = queryParser();
@@ -138,13 +136,12 @@ export default {
         stoken = this.stoken;
       function onfail(e) {
         e = !!e;
-        vm
-          .$alert(
-            e ? "获取信息发生错误，请点击确定再次尝试" : "页面地址无效",
-            "提示",
-            { type: e ? "info" : "error" }
-          )
-          .then(_ => e && vm.getData());
+        vm.$alert(
+          e ? "获取信息发生错误，请点击确定再次尝试" : "页面地址无效",
+          "提示",
+          { type: e ? "info" : "error" }
+        );
+        // .then(_ => e && vm.getData());
       }
       axios
         .get(`${serverUrl}share/get-utest-share-data/`, {
@@ -158,72 +155,75 @@ export default {
           ds.details.map(x => (x.show = !1));
           vm.details = ds;
           var echarts = require("echarts");
-          var myChart = echarts.init(document.getElementById("ng-echart"));
-          myChart.setOption({
-            title: {
-              text: "最新执行结果统计",
-              //subtext: '副标题',
-              x: "center"
-            },
-            tooltip: {
-              trigger: "item",
-              formatter: "{a} <br/>{b} : {c} ({d}%)"
-            },
-            legend: {
-              orient: "vertical",
-              left: "left",
-              data: ["失败个数", "错误个数", "成功个数", "跳过个数"]
-            },
-            toolbox: {
-              show: true,
-              itemSize: 20,
-              feature: {
-                dataZoom: {
-                  show: false
-                },
-                dataView: { show: false },
-                magicType: { show: false },
-                restore: { show: false },
-                saveAsImage: {}
-              }
-            },
-            series: [
-              {
-                name: "测试结果",
-                type: "pie",
-                radius: "55%",
-                center: ["50%", "60%"],
-                data: [
-                  { value: ds.failures, name: "失败个数" },
-                  {
-                    value: ds.errors,
-                    name: "错误个数",
-                    itemStyle: {
-                      normal: {
-                        color: "#D48265"
-                      }
-                    }
+          return;
+          vm.$nextTick(() => {
+            var myChart = echarts.init(document.getElementById("ng-echart"));
+            myChart.setOption({
+              title: {
+                text: "最新执行结果统计",
+                //subtext: '副标题',
+                x: "center"
+              },
+              tooltip: {
+                trigger: "item",
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+              },
+              legend: {
+                orient: "vertical",
+                left: "left",
+                data: ["失败个数", "错误个数", "成功个数", "跳过个数"]
+              },
+              toolbox: {
+                show: true,
+                itemSize: 20,
+                feature: {
+                  dataZoom: {
+                    show: false
                   },
-                  {
-                    value: ds.total - (ds.failures + ds.errors + ds.skipped),
-                    name: "成功个数",
-                    itemStyle: {
-                      normal: {
-                        color: "#54BECC"
+                  dataView: { show: false },
+                  magicType: { show: false },
+                  restore: { show: false },
+                  saveAsImage: {}
+                }
+              },
+              series: [
+                {
+                  name: "测试结果",
+                  type: "pie",
+                  radius: "55%",
+                  center: ["50%", "60%"],
+                  data: [
+                    { value: ds.failures, name: "失败个数" },
+                    {
+                      value: ds.errors,
+                      name: "错误个数",
+                      itemStyle: {
+                        normal: {
+                          color: "#D48265"
+                        }
                       }
+                    },
+                    {
+                      value: ds.total - (ds.failures + ds.errors + ds.skipped),
+                      name: "成功个数",
+                      itemStyle: {
+                        normal: {
+                          color: "#54BECC"
+                        }
+                      }
+                    },
+                    { value: ds.skipped, name: "跳过个数" }
+                  ],
+                  itemStyle: {
+                    emphasis: {
+                      shadowBlur: 10,
+                      shadowOffsetX: 0,
+                      shadowColor: "rgba(0, 0, 0, 0.5)"
                     }
-                  },
-                  { value: ds.skipped, name: "跳过个数" }
-                ],
-                itemStyle: {
-                  emphasis: {
-                    shadowBlur: 10,
-                    shadowOffsetX: 0,
-                    shadowColor: "rgba(0, 0, 0, 0.5)"
                   }
                 }
-              }
-            ]
+              ]
+            });
           });
         })
         .catch(onfail);

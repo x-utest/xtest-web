@@ -5,7 +5,7 @@
         <div class="user-box">
             <span class="icon icon-user"></span>
             用户名：
-            <router-link :to="{path:'/user-info'}" style="color:#fff">{{loginUser.userName}}</router-link>
+            <router-link :to="{path:'/user-info'}" style="color:#20a0ff">{{loginUser.userName}}</router-link>
             <div class="logout" v-on:click="logout">
                 退出登录
             </div>

@@ -6,7 +6,9 @@ const fs = require('fs'),
     });
 
 function config() {
-    scaner.question('请设置服务接口完整地址，默认使用http://协议\n例如输入 192.168.1.200:8009\n', answer => {
+    scaner.question(`请设置服务接口完整地址，默认使用http://协议
+    例如输入 192.168.1.200:8009
+    或者  www.example.com\n`, answer => {
         if (!answer) {
             console.info('请填写接口的完整地址，');
             return config();

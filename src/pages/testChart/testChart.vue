@@ -153,6 +153,7 @@ function renderChart(vm) {
   });
   myChart1.on("click", onclick);
   myChart2.on("click", onclick);
+  Object.assign(window, { myChart1, myChart2 });
 }
 import { mapState } from "vuex";
 var qs = queryParser();
@@ -295,9 +296,6 @@ export default {
   }
 }
 </style>
-
-
-
 
 
 

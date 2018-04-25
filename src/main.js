@@ -1,19 +1,41 @@
 
-//import ElementUI from 'element-ui'
 import Vue from 'vue'
 import App from './app'
 import filters from './filters/filters.js'
 import directives from './directives/directives.js'
-
-
-
 import ElementUI from 'element-ui'
+import qs from 'qs'
+
 Vue.use(ElementUI);
 
-
-
 import axios from 'axios'
-Vue.prototype.$http=axios;
+/* Fix axios.post(url,form) to FormData  */
+/*
+const Post = axios.post;
+axios.post = function (...args) {
+    var [url, form] = args;
+    if (typeof form === 'object' && form.constructor !== URLSearchParams) {
+        var f = new URLSearchParams;
+        Object.keys(form).map(x => f.append(x, form[x]))
+        args[1] = f
+    }
+    return Post.apply(this, args)
+}
+*/
+/* Fix axios.post(url,form) to Payload  */
+const Post = axios.post;
+axios.post = function (...args) {
+    var [url, form, opt] = args;
+    if (typeof form === 'object' && form.constructor !== URLSearchParams) {
+        args[2] = opt || {};
+        args[2].headers = {
+            'Content-Type': 'multipart/form-data; charset=UTF-8'
+        }
+    }
+    return Post.apply(this, args)
+}
+
+Vue.prototype.$http = axios;
 
 import store from './store'
 
@@ -37,10 +59,10 @@ Object.keys(directives).forEach(function (key, index) {
 /* eslint-disable no-new */
 new Vue({
     router,
-    route:{
-         data(t){
-console.error(t)
-    }
+    route: {
+        data(t) {
+            console.error(t)
+        }
     },
     store,
     el: '#app',

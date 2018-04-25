@@ -103,73 +103,8 @@
 				<!-- <span class="btn btn-clear">初始化配置</span> -->
 			</div>
 		</form>
-		<form class="init-form">
-			<h2>配置服务器接口</h2>
-			<p>例如 http://example.com:7890</p>
-			<div class="row" id="apihost">
-				<input class="txt1" value="http://" placeholder="http://" spellcheck="false">
-				<input class="txt2" value="" placeholder="127.0.0.1">
-				<input class="txt3" value="" placeholder=":8080">
-			</div>
-			<div class="row">
-				<span class="btn btn-init">确定</span>
-			</div>
-		</form>
 	</div>
 	<a href="/reset.html" class="reset-link">重置系统密码</a>
-	
-	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
-	 crossorigin="anonymous"></script>
-
-	<script>
-		$(function ($) {
-			var apihost = localStorage.apiHost + '', $init = $('.init-form');
-			function checkApi(a) { return /^http(s)?\:\/\//i.test(a) }
-			// if (!checkApi(apihost)) {
-			// 	localStorage.apiHost = '';
-			// 	$init.show().parent().show();
-			// 	var txts = [1, 2, 3].map(function (x) { return $('.txt' + x, $init) });
-			// 	$('.btn-init', $init).click(function () {
-			// 		var api = txts.map(function (x) { return x.val() }).join('');
-			// 		if (!checkApi(api)) { return alert('请输入正确的接口地址') }
-			// 		document.cookie = 'token=;expires=' + (new Date())
-			// 		return localStorage.apiHost = api + '/', location.href = '/'
-			// 	});
-			// 	return
-			// }
-			var $login = $('.login-form').show();
-			$login.parent().show()
-			$('input', $login).keyup(function (e) { e.keyCode == 13 && doLogin() })
-			$('.btn-login').click(doLogin);
-			$('.btn-clear').click(function () {
-				if (!confirm('确定要重新配置吗')) { return }
-				return localStorage.apiHost = '', location.reload();
-			});
-
-			function doLogin() {
-				var data = {};
-				$('input', $login).each(function () { data[this.name] = this.value });
-				if (!data.user || !data.password) { return alert('请完成输入') }
-				$.post(apihost + 'account/user-login/', JSON.stringify(data), function (res) {
-					try {
-						res = JSON.parse(res);
-						var token;
-						if (res.code == 200 && (token = (res.data || {}).token)) {
-							document.cookie = 'token=' + token;
-							location.href = '/#'
-						} else {
-							alert('登录失败，请检查输入')
-						}
-					} catch (e) {
-						alert('登录失败，请检查输入')
-					}
-
-				}).error(function () {
-					alert('登录异常')
-				});
-			}
-		})
-	</script>
 </body>
 
 </html>

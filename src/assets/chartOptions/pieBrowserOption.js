@@ -1,6 +1,3 @@
-/**
- * Created by 张瑞年 on 2017/4/27.
- */
 export default {
     title:{
         text:"browser分布",

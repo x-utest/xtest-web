@@ -45,18 +45,18 @@
                     <b class="text" style="color: #d11">目前没有加入任何组织</b>
                 </div>
             </div>
-            <div class="row">
-                <span class="lf">app_id</span>
-                <div v-if="organize.app_id" class="rt">
-                    <b class="text">{{ organize.app_id}}</b>
-                </div>
-            </div>
-            <div class="row">
-                <span class="lf">app_key</span>
-                <div v-if="organize.app_key" class="rt">
-                    <b class="text">{{ organize.app_key}}</b>
-                </div>
-            </div>
+                <div class="row">
+        <span class="lf">app_id</span>
+        <div v-if="organize.app_id" class="rt">
+            <b class="text">{{ organize.app_id}}</b>
+        </div>
+    </div>
+    <div class="row">
+        <span class="lf">app_key</span>
+        <div v-if="organize.app_key" class="rt">
+            <b class="text">{{ organize.app_key}}</b>
+        </div>
+    </div>
         </div>
     </div>
 </template>
@@ -67,8 +67,6 @@ function isOK(rsp) {
   return a && a.code == 200;
 }
 import { mapState, mapMutations, mapActions } from "vuex";
-
-import { MessageBox } from "element-ui";
 
 export default {
   data() {
@@ -119,6 +117,9 @@ export default {
           res => {
             if (isOK(res)) {
               vm.team = res.data.data;
+              if (!vm.team.id) {
+                vm.team.id = vm.team._id;
+              }
               vm.getOrganize(vm.team.id);
             }
           },
@@ -160,7 +161,7 @@ export default {
         })
         .then(res => {
           if (isOK(res)) {
-            vm.SET_LoginUser(name);
+            vm.SET_LoginUser({ userName: name });
             vm.$message("昵称已修改");
           } else {
             vm.$alert("昵称修改失败");

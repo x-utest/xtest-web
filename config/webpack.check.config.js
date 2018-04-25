@@ -1,6 +1,3 @@
-/**
- * Created by qiankn on 2017/1/13.
- */
 // NodeJS中的Path对象，用于处理目录的对象，提高开发效率。
 var webpack = require('webpack');
 var path = require('path');
@@ -8,9 +5,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var glob = require('glob');
 var vueConfig = require('./vue-loader.config');
 var entries = getEntry('./src/pages/**/*.js'); // 获得入口js文件
-/*var entries ={
- 'home':'./src/pages/home/home.js',
- }*/
+
 console.log(entries);
 console.log(path.resolve(__dirname, '../dist'));
 var chunks = Object.keys(entries);

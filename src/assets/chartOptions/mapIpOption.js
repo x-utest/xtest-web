@@ -1,6 +1,3 @@
-/**
- * Created by lenovo on 2017/4/27.
- */
 function randomData() {
     return Math.round(Math.random() * 1000);
 }

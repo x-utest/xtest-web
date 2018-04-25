@@ -28,7 +28,7 @@
 <script>
 import filters from "../../filters/filters";
 var BeijingTime = filters.BeijingTime;
-import Qrcode from "../../assets/qrcode.min.js";
+import Qrcode from "../../assets/qrcode.js";
 import {queryParser} from "../../assets/utils";
 import { apiHost as serverUrl } from "../../config";
 var ui;
@@ -57,7 +57,7 @@ var echarts = require("echarts");
 function renderChart(vm) {
   var myChart1 = echarts.init(ui.echart1),
     myChart2 = echarts.init(ui.echart2),
-    colors = ["#5793f3", "#d14a61", "#ac5"],
+    colors = ["#f00", "#d14a61", "#ac5"],
     Data = vm.data,
     Total = Data.map(v => v.total),
     Skipped = Data.map(v => v.skipped),

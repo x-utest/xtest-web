@@ -31,6 +31,10 @@
                         <td>{{details.pro_name}}</td>
                     </tr>
                     <tr>
+                        <td>服务器版本号</td>
+                        <td>{{details.pro_version}}</td>
+                    </tr>
+                    <tr>
                         <td>用例总数</td>
                         <td>{{details.total}}</td>
                     </tr>
