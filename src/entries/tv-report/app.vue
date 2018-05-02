@@ -81,10 +81,10 @@ function renderChart(vm) {
     colors = ["#F5A623", "#FF052C", "#50E3C2"],
     Data = vm.data,
     Total = Data.map(v => +v.total),
+    xMarks = Data.map((v, i) => ++i),
     Skipped = Data.map(v => +v.skipped),
     Errors = Data.map(v => +v.errors),
     Filures = Data.map(v => +v.failures),
-    ArrayBylen = l => [].join.call({ length: ++l }).split(""),
     formatter = params => {
       var lines = params.filter(x => x.seriesType == "line"),
         i = lines[0].dataIndex,
@@ -199,7 +199,7 @@ function renderChart(vm) {
       ...getOpt.axis(!1),
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(Total.length).map((v, i) => ++i),
+      data: xMarks,
       splitArea: {
         show: !0,
         areaStyle: {
@@ -240,7 +240,7 @@ function renderChart(vm) {
       ...getOpt.axis(!1),
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(Total.length).map((v, i) => ++i),
+      data: xMarks,
       splitArea: {
         show: !0,
         areaStyle: {
@@ -635,7 +635,7 @@ export default {
     position: relative;
     height: 843px;
     margin: 48px 0 127px;
-    /* pointer-events: none; */
+    pointer-events: none;
     &::before {
       position: absolute;
       content: "";
@@ -697,12 +697,12 @@ export default {
         }
       }
     }
-    .empty{
-       padding: 28px 0 36px 0;
+    .empty {
+      padding: 28px 0 36px 0;
       font-size: 52.8px;
       font-weight: 500;
       line-height: 74px;
-       opacity: 0.7;
+      opacity: 0.7;
     }
     .brand {
       padding-top: 54px;

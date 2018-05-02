@@ -39,11 +39,11 @@ function renderChart(vm) {
     colors = ["#f00", "#d14a61", "#ac5"],
     Data = vm.data,
     Total = Data.map(v => v.total),
+    xMarks = Data.map((v, i) => ++i),
     Skipped = Data.map(v => v.skipped),
     Errors = Data.map(v => v.errors),
     Filures = Data.map(v => v.failures),
     Max = [Skipped, Errors, Filures].map(arr => Math.max.apply(null, arr)),
-    ArrayBylen = l => [].join.call({ length: ++l }).split(""),
     formatter = params => {
       var i = params[0].dataIndex,
         data = Data[i] || {};
@@ -85,7 +85,7 @@ function renderChart(vm) {
     xAxis: {
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(30).map((v, i) => ++i)
+      data: xMarks
     },
     yAxis: {
       type: "value"
@@ -125,7 +125,7 @@ function renderChart(vm) {
     xAxis: {
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(30).map((v, i) => ++i)
+      data: xMarks
     },
     yAxis: {
       type: "value"
