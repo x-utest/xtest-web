@@ -29,7 +29,7 @@
 import filters from "../../filters/filters";
 var BeijingTime = filters.BeijingTime;
 import Qrcode from "../../assets/qrcode.js";
-import {queryParser} from "../../assets/utils";
+import { queryParser } from "../../assets/utils";
 import { apiHost as serverUrl } from "../../config";
 var ui;
 

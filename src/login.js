@@ -32,8 +32,8 @@ $(function ($) {
                     alert('登录失败，请检查输入')
                 }
             }
-        }).error(function () {
-            alert('登录服务异常')
+        }).error(function (e) {
+            alert('登录服务异常\n')
         });
     }
 })

@@ -97,7 +97,7 @@ export default {
     flex: 1;
     margin-top: 40px;
     margin-left: 200px;
-    height: calc(~"100% - 40px");
+    height: calc(~"100% - 80px");
   }
   .content {
     display: flex;

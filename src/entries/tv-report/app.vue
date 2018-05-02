@@ -1,37 +1,67 @@
 <template>
     <div id="app" v-loading.body="isloading">
-        <div class="container">
-            <h2 class="proj-title">
-               {{proj_name}} - 测试过程信息 
-            </h2>
-            <div class="charts-content">
-              <h3 class="chart-title">用例增长图</h3>
-                <div id="vx-echart1"></div>
-                <h3 class="chart-title">Bug消减图</h3>
-                <div id="vx-echart2"></div>
-        </div>
-        </div>
-        <div class="rt-side">
-          <div class="rss-wrap">
-            <div class="rss-p">版本修改备注</div>
+            <header class="proj-title">
+                 <i class="icon"></i>
+                 <i class="split"></i>
+                <span class="name">{{proj_name}} 测试过程信息 </span>
+            </header>
+            <div class="proj-display">
+                <section class="proj-chart">
+                  <div class="chart-wrap">
+                   <div class="chart-title">用例增长图</div>
+                <div class="proj-echart" id="vx-echart1"></div>
+                <div class="chart-title">
+                  Bug消减图
+                <div class="legend">
+                       <i class="spot" style="background:#F5A623"></i><span>错误次数</span> 
+                       <i class="spot" style="background:#FF052C"></i><span>失败次数</span>
+                       <i class="spot" style="background:#50E3C2"></i><span>跳过次数</span>
+                  </div>
+                </div>
+                <div class="proj-echart" id="vx-echart2"></div>
+                    </div>
+                </section>
+                <section class="proj-side">
             <ul class="rss-list">
                 <li v-for="x in rss">
-                    <div class="time">
+                    <div class="brand">
                           <span v-if="g.val==x.group"  v-for="g in rssGroup" 
-                          class="group-label" :style="'background:'+g.color">
+                          class="team" :style="g.style">
                            {{g.text}}</span>
-                      {{x.date_time}}
+                     <span class="time"> {{x.date_time}}</span>
                       </div>
-                    <div class="title">{{x.content}}</div>
+                    <div class="info">{{x.content}}</div>
                 </li>
+                <li v-if="rss.length<1" class="empty">
+                   :-) 没有任何版本记录
+                  </li>
              </ul>   
+             <div class="qr-warp">
+                  <i class="qr-tip"></i>
+                <i class="split"></i>
+                <div class="qr-code">
+                </div>
              </div>
-             <div class="qr-code">
-                  <p>手机扫描查看</p>
-              </div></div>
+                </section>
+              </div>
     </div>
 </template>
 <script>
+const Page_Rect = [4208, 2516];
+var Page_Scale = { x: 1, y: 1 };
+function ScalePage() {
+  var el = document.querySelector("#app");
+  if (!el) {
+    return setTimeout(ScalePage, 50);
+  }
+  Page_Scale.x = innerWidth / Page_Rect[0];
+  Page_Scale.y = innerHeight / Page_Rect[1];
+  var { x, y } = Page_Scale;
+  document.body.overflow = "hidden";
+  el.style.transform = `translateZ(0) scaleX(${x}) scaleY(${y})`;
+}
+onresize = ScalePage;
+
 import { cookie } from "cookie_js";
 import filters from "../../filters/filters";
 import { queryParser } from "../../assets/utils";
@@ -48,111 +78,223 @@ var echarts = require("echarts");
 function renderChart(vm) {
   var myChart1 = echarts.init(document.getElementById("vx-echart1")),
     myChart2 = echarts.init(document.getElementById("vx-echart2")),
-    colors = ["#f00", "#d14a61", "#ac5"],
+    colors = ["#F5A623", "#FF052C", "#50E3C2"],
     Data = vm.data,
-    Total = Data.map(v => v.total),
-    Skipped = Data.map(v => v.skipped),
-    Errors = Data.map(v => v.errors),
-    Filures = Data.map(v => v.failures),
-    Max = [Skipped, Errors, Filures].map(arr => Math.max.apply(null, arr)),
+    Total = Data.map(v => +v.total),
+    Skipped = Data.map(v => +v.skipped),
+    Errors = Data.map(v => +v.errors),
+    Filures = Data.map(v => +v.failures),
     ArrayBylen = l => [].join.call({ length: ++l }).split(""),
     formatter = params => {
-      var i = params[0].dataIndex,
+      var lines = params.filter(x => x.seriesType == "line"),
+        i = lines[0].dataIndex,
         data = Data[i] || {};
-      return `${i + 1}<br>
-    版本信息 : ${data.pro_version} <br>
-    创建时间 : ${BeijingTime(data.rc_time)} <br>
-    ${params
+      return `<div class="echart-tip"><div class="br">${i + 1}</div>
+    <div class="br">版本信息 : ${data.pro_version} </div>
+    <div class="br">创建时间 : ${BeijingTime(data.rc_time)} </div>
+    ${lines
       .map(
         x =>
-          `<i style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:${
-            x.color
-          }"></i>${x.seriesName} : ${x.value}<br>`
+          `<div class="br"><i class="spot" style="background:${x.color}"></i>${
+            x.seriesName
+          } : ${x.value}</div>`
       )
-      .join("")}
-                      `;
+      .join("")}</div`;
     };
-  Max = Math.max.apply(null, Max);
-  myChart1.setOption({
-    color: ["#5793f3"],
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "cross"
+  function toMax(x) {
+    var n = x.max,
+      a = 10,
+      s = n % a;
+    return n + a + (s == 0 ? 0 : a - s);
+  }
+  function getOpt() {
+    return {
+      tooltip: {
+        trigger: "axis",
+        formatter
       },
-      formatter
-    },
-    toolbox: {
-      show: true
-    },
-    grid: {
-      top: 70,
-      bottom: 50
-    },
+      toolbox: {
+        show: !1
+      },
+      grid: {
+        left: "45px",
+        right: "78px",
+        top: "80px",
+        bottom: "50px",
+        containLabel: true
+      }
+    };
+  }
+  getOpt.axis = function(show) {
+    return {
+      nameTextStyle: {
+        color: "#fff",
+        fontSize: 32
+      },
+      // x轴的字体样式
+      axisLabel: {
+        show: true,
+        margin: 30,
+        textStyle: {
+          color: "#fff",
+          fontSize: 32
+        }
+      },
+      // 控制网格线是否显示
+      splitLine: {
+        show: show,
+        lineStyle: {
+          color: "#666",
+          width: 1,
+          type: "solid"
+        }
+      },
+      // xy轴的颜色和宽度
+      axisLine: {
+        show: !show,
+        lineStyle: {
+          color: "#D8DDDE",
+          width: 2 //这里是坐标轴的宽度,可以去掉
+        }
+      }
+    };
+  };
+  getOpt.series = function(color, grad) {
+    return {
+      type: "line",
+      smooth: true,
+      symbol: "emptyCircle", //拐点图例
+      symbolSize: 38, //拐点大小
+      // label: {
+      //   normal: {
+      //     show: true,
+      //     position: "top",
+      //     textStyle: {
+      //       //color: "#fff",
+      //       fontSize: 32
+      //     }
+      //   }
+      // },
+      itemStyle: {
+        show: !0,
+        normal: {
+          lineStyle: {
+            width: 10,
+            color,
+            shadowColor: "rgba(0,0,0,0.4)"
+          }
+        }
+      },
+      areaStyle: {
+        normal: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, grad)
+        }
+      }
+    };
+  };
+  myChart1.setOption({
+    ...getOpt(),
+    color: ["#5793f3"],
     xAxis: {
+      ...getOpt.axis(!1),
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(Total.length).map((v, i) => ++i)
+      data: ArrayBylen(Total.length).map((v, i) => ++i),
+      splitArea: {
+        show: !0,
+        areaStyle: {
+          color: ["rgba(0,0,0,0)", "rgba(255,255,255,.05)"]
+        }
+      }
     },
     yAxis: {
-      type: "value"
+      type: "value",
+      ...getOpt.axis(!0),
+      name: "次数（次）",
+      max: toMax
     },
     series: [
       {
+        ...getOpt.series("#347EFF", [
+          {
+            offset: 0,
+            color: "rgba(68,136,255,0.40)"
+          },
+          {
+            offset: 1,
+            color: "rgba(68,136,255,0)"
+          }
+        ]),
         name: "总次数",
-        type: "line",
-        smooth: true,
         data: Total
       }
     ]
   });
   myChart2.setOption({
+    ...getOpt(),
     color: colors,
-    // title: {
-    //     text: 'Bug消减图'
+    // legend: {
+    //   data: ["错误次数", "失败次数", "跳过次数"]
     // },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "cross"
-      },
-      formatter
-    },
-    toolbox: {
-      show: true
-    },
-    legend: {
-      data: ["错误次数", "失败次数", "跳过次数"]
-    },
-    grid: {
-      top: 70,
-      bottom: 50
-    },
     xAxis: {
+      ...getOpt.axis(!1),
       type: "category",
       boundaryGap: !1,
-      data: ArrayBylen(Total.length).map((v, i) => ++i)
+      data: ArrayBylen(Total.length).map((v, i) => ++i),
+      splitArea: {
+        show: !0,
+        areaStyle: {
+          color: ["rgba(0,0,0,0)", "rgba(255,255,255,.05)"]
+        }
+      }
     },
     yAxis: {
-      type: "value"
+      ...getOpt.axis(!0),
+      type: "value",
+      name: "次数（次）",
+      max: toMax
     },
     series: [
       {
+        ...getOpt.series(colors[0], [
+          {
+            offset: 0.02,
+            color: "rgba(245,166,35,0.52)"
+          },
+          {
+            offset: 0.98,
+            color: "rgba(245,128,35,0.00)"
+          }
+        ]),
         name: "错误次数",
-        type: "line",
-        smooth: true,
         data: Errors
       },
       {
+        ...getOpt.series(colors[1], [
+          {
+            offset: 0,
+            color: "rgba(255,68,68,0.40)"
+          },
+          {
+            offset: 1,
+            color: "rgba(255,68,68,0.00)"
+          }
+        ]),
         name: "失败次数",
-        type: "line",
-        smooth: true,
         data: Filures
       },
       {
+        ...getOpt.series(colors[2], [
+          {
+            offset: 0.02,
+            color: "rgba(68,136,255,0.40)"
+          },
+          {
+            offset: 0.98,
+            color: "rgba(68,136,255,0.00)"
+          }
+        ]),
         name: "跳过次数",
-        type: "line",
-        smooth: true,
         data: Skipped
       }
     ]
@@ -160,7 +302,7 @@ function renderChart(vm) {
   setTimeout(() => {
     SlideTooltop(myChart1);
     SlideTooltop(myChart2);
-  }, 100);
+  }, 5e3);
 }
 function dispatch(el, type, x, y, t) {
   var e = document.createEvent("MouseEvents");
@@ -193,23 +335,22 @@ function SlideTooltop(echart) {
         x =>
           x.type == "text" && /^label_\d+/.test(x.anid) && x.transform[1] == 0
       )
-      .map(x => x.position),
+      .map(x => [x.position[0] * Page_Scale.x, x.position[1] * Page_Scale.y]),
     wait = 5e3;
-
   function moveTo(i, s) {
-    // if (i < 0) {
-    //   //播放下一个项目
-    //   setTimeout(() => (location.href = `?inx=${next_proj.inx}`), wait);
-    //   return dispatch(el, "mousemove", rect.left, rect.top);
-    // }
-    if (i >= spots.length) {
+    if (spots.length < 1 || i >= spots.length) {
       //播放下一个项目
       setTimeout(() => (location.href = `?inx=${next_proj.inx}`), wait);
-      return dispatch(el, "mousemove", rect.left, rect.top);
+      dispatch(el, "mousemove", rect.left, rect.top);
       //return moveTo(i - 1, -1);
     }
     var [x, y] = spots[i];
-    dispatch(el, "mousemove", rect.left + x, rect.top + y - 20);
+    dispatch(
+      el,
+      "mousemove",
+      rect.left + x + (i < 1 ? 5 : 0),
+      rect.top + y - 20
+    );
     return setTimeout(moveTo, wait, i + s, s);
   }
   moveTo(0, 1);
@@ -233,8 +374,19 @@ export default {
       isloading: !1,
       token: cookie.get("token"),
       rssGroup: [
-        { text: "开发组", val: "dev", color: "#409eff" },
-        { text: "测试组", val: "test", color: "#67c23a" }
+        {
+          text: "开发组",
+          val: "dev",
+          style: {
+            background: "linear-gradient(270deg, #FCF53C 0%, #F8E71C 100%)",
+            color: "#7B7200"
+          }
+        },
+        {
+          text: "测试组",
+          val: "test",
+          style: { background: "#7ED321", color: "#3A6C00" }
+        }
       ]
     };
   },
@@ -377,8 +529,8 @@ export default {
               () =>
                 new Qrcode(vm.$el.querySelector(".qr-code"), {
                   text: url,
-                  width: 300,
-                  height: 300,
+                  width: 520,
+                  height: 520,
                   correctLevel: Qrcode.CorrectLevel.H
                 })
             );
@@ -395,108 +547,230 @@ export default {
       return vm.$alert("没有登录", "提示", { type: "error" });
     }
     vm.getProjects();
+  },
+  mounted() {
+    this.$nextTick(ScalePage);
   }
 };
 </script>
-<style scoped lang=less rel="stylesheet/less">
+<style   lang=less rel="stylesheet/less">
 #app {
-  position: relative;
-  height: 100%;
-  .container {
-    width: calc(~"100% - 360px");
-    height: 100%;
-  }
+  width: 4208px;
+  height: 2516px;
+  transform-origin: top left;
+  display: flex;
+  flex-direction: column;
+  background: #242429;
+  color: #fff;
+  overflow: hidden;
+  font-family: "PingFang SC", "Microsoft Yahei", "微软雅黑", "arial", "宋体",
+    "sans-serif";
   .proj-title {
-    margin: 0;
-    padding: 20px 30px;
-    font-size: 36px;
-    color: #20a0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 220px;
+    background: linear-gradient(180deg, #34343b 0%, #242429 100%);
+    box-shadow: 0 2px 4px 0 rgba(255, 255, 255, 0.26),
+      0 18px 40px 0 rgba(0, 0, 0, 0.4);
+    .icon {
+      height: 110px;
+      width: 110px;
+      font-size: 50px;
+      background: url(../../assets/img/logo.png) no-repeat center;
+    }
+    .split {
+      margin: 0 47.5px;
+      height: 109px;
+      width: 4px;
+      opacity: 0.3;
+      background-color: #fff;
+    }
+    .name {
+      height: 126px;
+      font-size: 90px;
+      font-weight: 500;
+      line-height: 126px;
+      text-transform: uppercase;
+    }
   }
-  .charts-content {
-    height: calc(~"100% - 100px");
+  .proj-display {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .proj-chart {
+    flex: 1;
+  }
+  .chart-wrap {
+    width: 2672px;
+    margin: 0 auto;
+    padding-top: 102px;
   }
   .chart-title {
-    width: 80%;
-    margin: 0 auto;
-    padding: 10px;
+    position: relative;
+    line-height: 84px;
+    height: 84px;
+    opacity: 0.7;
+    font-size: 60px;
+    .legend {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      top: 9px;
+      right: 0;
+      height: 67px;
+      font-size: 48px;
+      line-height: 67px;
+    }
+    .spot {
+      height: 40px;
+      width: 40px;
+      margin: 0 16px 0 52px;
+      border-radius: 50%;
+    }
   }
-  #vx-echart1 {
-    height: calc(~"(100% - 100px)*.4");
-    pointer-events: none;
+  .proj-echart {
+    position: relative;
+    height: 843px;
+    margin: 48px 0 127px;
+    /* pointer-events: none; */
+    &::before {
+      position: absolute;
+      content: "";
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.3;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 100%
+      );
+      box-shadow: 0 4px 40px 0 rgba(0, 0, 0, 0.4);
+    }
+    > div:last-child {
+      border-radius: 14px !important;
+      padding: 0 !important;
+    }
   }
-  #vx-echart2 {
-    height: calc(~"(100% - 100px)*.6");
-    pointer-events: none;
+  .echart-tip {
+    padding: 30px 24px 30px 40px;
+    line-height: 50px;
+    font-size: 36px;
+    font-weight: 500;
+    border-radius: 14px;
+    background-color: rgba(0, 0, 0, 0.3);
+    .br {
+      margin: 8px 0;
+    }
+    .spot {
+      display: inline-block;
+      margin-right: 17px;
+      width: 33px;
+      height: 33px;
+      border-radius: 50%;
+    }
   }
-  .rt-side {
-    position: absolute;
-    top: 0;
-    right: 40px;
-    width: 320px;
-    height: 100%;
+  .proj-side {
+    display: flex;
+    flex-direction: column;
+    width: 1202px;
+  }
+  .rss-list {
+    margin: 0;
+    padding: 112px 50px 0 50px;
+    flex: 1;
+    list-style: none;
+    /* height: calc(~"100% - 400px"); */
     overflow: hidden;
-    .rss-wrap {
-      height: calc(~"100% - 400px");
-      overflow: hidden;
+    li {
+      border-top: 2px solid #ccc;
+      &:first-child {
+        border-top: none;
+      }
+      &:first-of-type {
+        .brand {
+          padding-top: 0;
+        }
+      }
     }
-    .rss-p {
-      padding: 12px 0;
+    .empty{
+       padding: 28px 0 36px 0;
+      font-size: 52.8px;
+      font-weight: 500;
+      line-height: 74px;
+       opacity: 0.7;
     }
-    .rss-list {
+    .brand {
+      padding-top: 54px;
+    }
+
+    .team {
+      display: inline-block;
+      margin-right: 40px;
+      height: 77.44px;
+      width: 166.5px;
+      border-radius: 11.44px;
+      font-size: 44px;
+      font-weight: 600;
+      line-height: 77px;
+      text-align: center;
+    }
+    .time {
+      height: 77.44px;
+      width: 475px;
+      opacity: 0.7;
+      font-size: 49.28px;
+      line-height: 77px;
+    }
+    .info {
+      padding: 28px 0 36px 0;
+      font-size: 52.8px;
+      font-weight: 500;
+      line-height: 74px;
+    }
+  }
+  .qr-warp {
+    height: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .split {
       position: relative;
-      margin: 0;
-      list-style: none;
-      padding-left: 10px;
+      margin: 0 42.5px;
+      height: 20px;
+      width: 106px;
       &::before {
         position: absolute;
         content: "";
-        top: 0;
-        left: 10px;
-        bottom: 0;
-        width: 2px;
-        background: #1d9d74;
-        z-index: 19;
+        width: 20px;
+        height: 100%;
+        background: #919194;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 0;
+        border-radius: 50%;
+        box-shadow: 43px 0 0 0 #919194, 86px 0 0 0 #919194;
       }
-      li {
-        position: relative;
-        padding: 8px 16px;
-        background-color: #ecf8ff;
-        border-radius: 4px;
-        margin-bottom: 15px;
-        line-height: 1.5em;
-        &::before {
-          position: absolute;
-          content: "";
-          top: 10px;
-          left: -6px;
-          width: 15px;
-          height: 15px;
-          background: #50bfff;
-          border-radius: 50%;
-          z-index: 29;
-        }
-        &:last-child {
-          margin-bottom: 0;
-        }
-      }
-      .time {
-        font-size: 14px;
-        color: #333;
-      }
-      .title {
-        font-size: 16px;
-        color: #07a;
-      }
-    }
-    .qr-code {
-      width: 300px;
-      margin: 20px auto;
     }
   }
-  .group-label {
-    padding: 2px 5px;
-    margin-right: 6px;
-    color: #fff;
+  .qr-tip {
+    height: 305px;
+    width: 305px;
+    border: 4.5px solid #fff;
+    opacity: 0.5;
+    border-radius: 50%;
+    background: url(../../assets/img/scan_qr.png) no-repeat center;
+  }
+  .qr-code {
+    width: 520px;
+    height: 520px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 16px;
   }
 }
 </style>

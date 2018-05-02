@@ -43,9 +43,8 @@ module.exports = {
             },
             {
                 test: /\.(webp|png|jpg|jpeg|gif|ico|svg)$/i,
-                loader: 'url-loader',
+                loader: 'file-loader',
                 options: {
-                    limit: 1,
                     name: './assets/[name].[hash:5].[ext]'
                 }
             },
