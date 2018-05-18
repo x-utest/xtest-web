@@ -20,7 +20,14 @@
                     <router-link :to="{path:'/test-report',query:{id:scope.row._id}}">{{scope.row._id | SliceString(8)}}</router-link>
                 </template>
             </el-table-column>
-            <el-table-column prop="pro_name" label="项目代号" min-width="150"></el-table-column>
+            <el-table-column label="项目代号" min-width="150">
+                <template scope="scope">
+                  <div class="relative">
+                    <b>{{scope.row.pro_name }}</b>
+                    <span :class="'tag-label'+(scope.row.tag=='default'?' def':'')">{{scope.row.tag}}</span>
+                  </div>  
+                </template>
+            </el-table-column>
             <el-table-column prop="pro_version" label="版本号" width="140"></el-table-column>
             <el-table-column prop="total" label="用例数" width="80"></el-table-column>
             <el-table-column prop="failures" label="失败" width="70"></el-table-column>
@@ -108,6 +115,9 @@ export default {
             vm.data = res.data.data.page_data.map(x => {
               if (!x.id) {
                 x.id = x._id;
+              }
+              if (!x.tag) {
+                x.tag = "default";
               }
               return x;
             });
@@ -207,6 +217,10 @@ export default {
     margin: 0 1rem 0.6rem 2.5%;
     text-align: left;
   }
+  .relative{position: relative}
+  .tag-label{position:absolute;padding:0 8px;top:0;right:0;background: #4294d5;color: #fff;border-radius: 3px;}
+  .tag-label.def{background: #13ce66;}
+
   .el-pagination {
     padding-left: 26px;
     margin-bottom: 50px;

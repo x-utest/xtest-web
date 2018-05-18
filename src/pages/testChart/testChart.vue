@@ -7,8 +7,16 @@
                     <el-breadcrumb-item>{{proj_name}}详细信息</el-breadcrumb-item>
                 </el-breadcrumb>
             </div>
-            <div style="margin: 5px 0">
-                <el-button size="small" type="primary" v-show="!isShare" @click="doShare" style="margin:0 30px;">生成分享链接</el-button>
+            <div style="margin: 5px 0;padding-left:30px;">
+              <b>查看Tag版本：</b>
+                  <el-radio-group v-model="activeTag" @change="getRecord" size="medium">
+      <el-radio-button v-for="x in tags" :label="x"></el-radio-button>
+    </el-radio-group>
+ <div style="display:inline-block" v-if="!isShare">
+                <el-button size="small" type="success" @click="doShare" style="margin-left:50px;">生成分享链接</el-button>
+               <span style="margin-left:10px;color:#555"> * 只会分享当前选择的Tag版本信息</span>
+   
+     </div>
                 <span v-if="isShare">
                     <i class="share-url" v-html="shareUrl"></i>
                     <el-button type="info" size="small" style="margin:0 20px;" @click="doCopy">复制</el-button>
@@ -26,7 +34,7 @@
 </template>
 <script>
 import filters from "../../filters/filters";
-import { selectElem, queryParser } from "../../assets/utils";
+import { Copy, queryParser } from "../../assets/utils";
 
 var BeijingTime = filters.BeijingTime;
 function isOK(res) {
@@ -161,6 +169,8 @@ var qs = queryParser();
 export default {
   data() {
     return {
+      tags: [],
+      activeTag: "",
       shareUrl: "",
       isShare: !1,
       id: "",
@@ -175,13 +185,45 @@ export default {
   methods: {
     doCopy() {
       var vm = this;
-      if (selectElem(vm.$el.querySelector(".share-url"), 1)) {
+      if (Copy(vm.shareUrl)) {
         return vm.$message("复制成功");
       }
       vm.$alert("复制失败，请自行复制", "提示", { type: "error" });
     },
-    getRecord() {
+    getTags() {
       var vm = this;
+      vm.isloading = !0;
+      function onfail() {
+        vm.isloading = !1;
+        vm.$alert("获取项目版本信息发生错误", "提示", { type: "error" });
+      }
+      vm.$http
+        .get(`${this.serverUrl}project/get-tags/`, {
+          params: {
+            token: vm.token,
+            pro_id: vm.id
+          }
+        })
+        .then(res => {
+          vm.isloading = !1;
+          if (isOK(res)) {
+            var tags = res.data.data;
+            if (!tags[0]) {
+              tags = ["default"];
+            }
+            vm.tags = tags;
+            vm.activeTag = tags[0];
+            vm.getRecord();
+          } else {
+            onfail();
+          }
+        })
+        .catch(onfail);
+    },
+    getRecord() {
+      var vm = this,
+        { activeTag } = vm;
+      vm.isShare = !1;
       vm.isloading = !0;
       function onfail() {
         vm.isloading = !1;
@@ -192,7 +234,8 @@ export default {
           params: {
             token: vm.token,
             id: vm.id,
-            page_cap: 30
+            page_cap: 30,
+            tag: activeTag
           }
         })
         .then(res => {
@@ -218,7 +261,8 @@ export default {
         .get(`${this.serverUrl}share/get-pro-share-link/`, {
           params: {
             token: vm.token,
-            project_id: vm.id
+            project_id: vm.id,
+            tag: vm.activeTag
           }
         })
         .then(res => {
@@ -245,7 +289,7 @@ export default {
         type: "warn"
       });
     }
-    vm.getRecord();
+    vm.getTags();
   }
 };
 </script>
@@ -279,12 +323,12 @@ export default {
   }
   #vx-echart1 {
     width: 80%;
-    height: 320px;
+    height: 300px;
     margin: 30px auto;
   }
   #vx-echart2 {
     width: 80%;
-    height: 360px;
+    height: 350px;
     margin: 40px auto;
   }
   h1 {
@@ -296,6 +340,3 @@ export default {
   }
 }
 </style>
-
-
-

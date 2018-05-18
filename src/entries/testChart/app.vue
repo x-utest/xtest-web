@@ -21,7 +21,7 @@
             </div>
         </div>
         <div class="footer">
-            CopyRight©2017 版权所有 版本号: 10.0.2
+            {{version}}
         </div>
     </div>
 </template>
@@ -31,6 +31,7 @@ var BeijingTime = filters.BeijingTime;
 import Qrcode from "../../assets/qrcode.js";
 import { queryParser } from "../../assets/utils";
 import { apiHost as serverUrl } from "../../config";
+import pageConfig from "../../sysConfig/page";
 var ui;
 
 function AllotChartHeight() {
@@ -181,7 +182,8 @@ export default {
       stoken: "",
       proj_name: "",
       data: [],
-      isloading: !0
+      isloading: !0,
+      version:pageConfig.version
     };
   },
   methods: {

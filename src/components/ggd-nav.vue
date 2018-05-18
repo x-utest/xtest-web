@@ -24,7 +24,7 @@
               </div>
             </div>
         </div>
-        <!-- This is a hack to trigger components data refreshing -->
+        <!-- This is a hack to force trigger components data refreshing -->
         <div style="display: none;">
         {{loginUser}}
         </div>
@@ -59,6 +59,7 @@ export default {
   position: fixed;
   overflow-y: auto;
   height: 100%;
+  z-index: 20199;
   .hide {
     display: none !important;
   }

@@ -96,7 +96,7 @@
             </span>
         </el-dialog>   
         <div class="footer">
-            CopyRight©2017 版权所有 版本号: 10.0.2
+            {{version}}
         </div>
  </div></template>
 <script>
@@ -109,6 +109,8 @@ import Qrcode from "../../assets/qrcode.js";
 import { queryParser } from "../../assets/utils";
 import { mapState } from "vuex";
 import { apiHost as serverUrl } from "../../config";
+import pageConfig from "../../sysConfig/page";
+
 var qs = queryParser();
 export default {
   data() {
@@ -117,7 +119,8 @@ export default {
       details: {},
       failuresImg: failuresImg,
       errorsImg: errorsImg,
-      popInfo: { show: false, case: "", note: "" }
+      popInfo: { show: false, case: "", note: "" },
+      version: pageConfig.version
     };
   },
   methods: {

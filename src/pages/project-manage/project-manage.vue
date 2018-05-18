@@ -40,11 +40,24 @@
                     <el-button type="danger" size="mini" icon="delete" @click="del(scope.row.id)"></el-button>
                     </div>
                      <div v-show="showTV">
-                       <el-switch v-model="scope.row.tv" :change="setTVShow(scope.row)"></el-switch>
+                       <el-popover  placement="left" @hide="setTVShow(scope.row)"  trigger="hover">
+                         <p style="font-size: 14px;font-weight: bold;">勾选需要显示的版本</p>
+                             <div>
+                                 <el-checkbox-group v-model="scope.row.tv_tags" v-if="scope.row.tags.length>0">
+                                  <div v-for="x in scope.row.tags" style="margin-bottom:5px;">
+                                  <el-checkbox :label="x"></el-checkbox>
+                                  </div>
+                                </el-checkbox-group>
+                                 <span v-if="scope.row.tags.length<1" style="color:#d11">
+                                   没有版本，不需要设置
+                                </span>
+                               </div>
+                          <b slot="reference" style="padding: 1px 8px;border:1px solid #e66">版本设置</b>
+                        </el-popover>
                        <i class="space"></i>
-                         <span v-show="!scope.row.tv" style="color:#d11">该项未开启</span>
-                       <div v-show="scope.row.tv" style="display:inline-block">
-  <el-button type="info" size="mini" icon="time" title="填写版本备注" @click="popTV(scope.row)"></el-button>
+                         <!-- <span v-show="!scope.row.tv" style="color:#d11">该项未开启</span> -->
+                       <div style="display:inline-block">
+    <el-button type="info" size="mini" icon="time" title="填写版本备注" @click="popTV(scope.row)"></el-button>
                     <a class="tv-link" :href="'/TV-Exhibition.html?id='+scope.row.id" target="_blank" title="访问电视展示页面" style="right:10px"></a>
                          </div>
                     </div>
@@ -56,7 +69,9 @@
         <div style="height:20px"></div>
         <el-pagination layout="prev, pager, next" :page-count="totalPage" :page-size="1" :current-page="pageNum" @current-change="getProject">
         </el-pagination>
-    
+
+
+
         <el-dialog :visible.sync="FormVisible" :close-on-click-modal="false">
             <b slot="title">{{form.id?'修改项目':'添加新项目'}}</b>
             <el-form :model="form">
@@ -148,10 +163,20 @@ function isOK(rsp) {
   var a = rsp.data;
   return a && a.code == 200;
 }
+import Sortable from "Sortablejs";
+function bindSort(dom) {
+  return;
+  Sortable.create(document.querySelector(".tag-list"), {
+    //handle: '.drag-handle',
+    animation: 150
+  });
+}
 
 import { mapState } from "vuex";
 import filters from "../../filters/filters";
+import { CtxComparer } from "../../assets/utils";
 const { Time } = filters;
+
 export default {
   data() {
     return {
@@ -244,16 +269,19 @@ export default {
         .catch(onfail);
     },
     setTVShow(proj) {
-      /* change 会触发全部数据，必须跟原始值比对，有差异才是事件源 */
       var vm = this,
-        { id, tv, _tv } = proj;
-      if (tv == _tv) {
+        { id, tags, tv_tags, _tv_tags } = proj;
+      if (!tags.length) {
+        return;
+      }
+      /* 必须跟原始值比对，有差异才提交修改 */
+      if (CtxComparer.Array(tv_tags, _tv_tags)) {
         return;
       }
       function onfail() {
         vm.isloading = !1;
-        proj.tv = _tv;
-        vm.$alert("设置电视展示发生错误", "提示", { type: "error" });
+        proj.tv_tags = _tv_tags.slice(0);
+        vm.$alert("设置电视展示版本发生错误", "提示", { type: "error" });
       }
       vm.isloading = !0;
       vm.$http
@@ -261,13 +289,14 @@ export default {
           `${vm.serverUrl}dashboard/update_project_show/?token=${vm.token}`,
           {
             pro_id: id,
-            tv
+            tv_tags
           }
         )
         .then(res => {
           vm.isloading = !1;
           if (isOK(res)) {
-            proj._tv = tv;
+            proj._tv_tags = tv_tags.slice(0);
+            vm.$message("版本展示信息已修改");
           } else {
             onfail();
           }
@@ -360,7 +389,7 @@ export default {
             }
             remark.isEdit = !1;
             remark.date_time = Time.toString(remark.date_time);
-            remark._restore = [][1];
+            remark._restore = [][0];
             remark._restore = JSON.stringify(remark);
             vm.isloading = !1;
           } else {
@@ -462,6 +491,15 @@ export default {
               x.id = x._id;
             }
             x._tv = x.tv = !!x.tv;
+            x.tags = x.tags || [];
+            if (!x.tags[0]) {
+              x.tags[0] = "default";
+            }
+            x.tv_tags = x.tv_tags || [];
+            x._tv_tags = x.tv_tags.slice(0);
+            // if (!x.tags[0]) {
+            //   x.tags[0] = "默认版本";
+            // }
             return x;
           });
           vm.totalPage = res.data.page_total_cnts;
@@ -471,13 +509,13 @@ export default {
   },
   created() {
     this.getProject();
+    //this.$nextTick(() => bindSort(this.$el));
   }
 };
 </script>
 
 <style scoped lang=less rel="stylesheet/less">
 @import "../../assets/public.less";
-
 .project-manage {
   background-color: #f6f9f9;
   h1 {

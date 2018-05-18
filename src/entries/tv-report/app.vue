@@ -3,7 +3,8 @@
             <header class="proj-title">
                  <i class="icon"></i>
                  <i class="split"></i>
-                <span class="name">{{proj_name}} 测试过程信息 </span>
+                <span class="name">{{projInfo.project_name}} 测试过程信息 </span>
+                <span class="tag" v-if="projInfo.tv_tags&&projInfo.tv_tags[tvIndex]">{{projInfo.tv_tags[tvIndex]}}</span>
             </header>
             <div class="proj-display">
                 <section class="proj-chart">
@@ -33,7 +34,7 @@
                     <div class="info">{{x.content}}</div>
                 </li>
                 <li v-if="rss.length<1" class="empty">
-                   :-) 没有任何版本记录
+                   :-) 该版本没有任何记录标签
                   </li>
              </ul>   
              <div class="qr-warp">
@@ -300,7 +301,7 @@ function renderChart(vm) {
     ]
   });
   setTimeout(() => {
-    SlideTooltop(myChart1);
+    SlideTooltop(myChart1, app.getRecord);
     SlideTooltop(myChart2);
   }, 5e3);
 }
@@ -325,7 +326,7 @@ function dispatch(el, type, x, y, t) {
   );
   t > 0 ? setTimeout(() => el.dispatchEvent(e), t) : el.dispatchEvent(e);
 }
-function SlideTooltop(echart) {
+function SlideTooltop(echart, cb) {
   var zr = echart.getZr(),
     el = zr.dom.querySelector("canvas"),
     rect = el.getBoundingClientRect(),
@@ -340,9 +341,9 @@ function SlideTooltop(echart) {
   function moveTo(i, s) {
     if (spots.length < 1 || i >= spots.length) {
       //播放下一个项目
-      setTimeout(() => (location.href = `?inx=${next_proj.inx}`), wait);
+      //setTimeout(() => (location.href = `?inx=${next_proj.inx}`), wait);
       dispatch(el, "mousemove", rect.left, rect.top);
-      //return moveTo(i - 1, -1);
+      return cb && setTimeout(cb, wait);
     }
     var [x, y] = spots[i];
     dispatch(
@@ -355,22 +356,25 @@ function SlideTooltop(echart) {
   }
   moveTo(0, 1);
 }
-
+function playNext() {
+  //播放下一个项目
+  setTimeout(() => (location.href = `?inx=${next_proj.inx}`), 3e3);
+}
+var app;
 var qs = queryParser();
 /*
   页面有效根据 [id] 展示信息
   没有则根据轮播的顺序 [inx] 展示 , 次序递增，循环结束后重置为0
   否则  从项目列表的第一个开始轮播
 */
-
 export default {
   data() {
     return {
       proj_List: [],
-      proj_name: "",
+      tvIndex: -1,
       data: [],
       rss: [],
-      id: "",
+      projInfo: {},
       isloading: !1,
       token: cookie.get("token"),
       rssGroup: [
@@ -408,54 +412,68 @@ export default {
         })
         .then(res => {
           //vm.isloading = !1;
-          vm.proj_List = res.data.page_data.filter(x => x.tv).map(x => {
-            if (!x.id) {
-              x.id = x._id;
-            }
-            return x;
-          });
+          var proj_List = res.data.page_data
+            .filter(x => (x.tv_tags || []).length > 0)
+            .map(x => {
+              if (!x.id) {
+                x.id = x._id;
+              }
+              return x;
+            });
           //vm.totalPage = res.data.page_total_cnts;
+          if (!proj_List.length) {
+            return vm.$alert(
+              "没有可以电视播放的项目列表，请选择了项目后再试",
+              "提示",
+              {
+                type: "error"
+              }
+            );
+          }
+          vm.proj_List = proj_List;
+          var { id, inx } = qs,
+            useInx;
+          if (id) {
+            let item = proj_List.find(x => x.id == id);
+            if (!item) {
+              return vm.$alert("项目id无效，或者未启用电视展示功能", "提示", {
+                type: "error"
+              });
+            }
+            vm.projInfo = item;
+            //找到对应下标
+            inx = proj_List.indexOf(item);
+          } else {
+            useInx = 1;
+            if (!/^\d+$/.test(inx) || inx < 0 || inx > proj_List.length - 1) {
+              inx = 0;
+            }
+            inx = +inx;
+            id = proj_List[inx].id;
+            vm.projInfo = proj_List[inx];
+          }
+          console.info(` 当前播放项目： ${inx + 1} / ${proj_List.length}`);
+          if (inx + 1 >= proj_List.length) {
+            inx = -1;
+          }
+          ++inx;
+          next_proj = proj_List[inx];
+          next_proj.inx = inx;
+          vm.tvIndex = -1;
           vm.getRecord();
         })
         .catch(onfail);
     },
     getRecord() {
       var vm = this,
-        { proj_List } = vm,
-        { id, inx } = qs;
-      if (!proj_List.length) {
-        return vm.$alert("没有电视播放的项目列表，请开启项目后再试", "提示", {
-          type: "error"
-        });
+        { tvIndex, projInfo } = vm;
+      if (++tvIndex >= projInfo.tv_tags.length) {
+        return playNext();
       }
-      var useInx;
-      if (id) {
-        let item = proj_List.find(x => x.id == id);
-        if (!item) {
-          return vm.$alert("项目id无效,或者未启用电视展示功能", "提示", {
-            type: "error"
-          });
-        }
-        vm.proj_name = item.project_name;
-        //找到对应下标
-        inx = proj_List.indexOf(item);
-      } else {
-        useInx = 1;
-        if (!/^\d+$/.test(inx) || inx < 0 || inx > proj_List.length - 1) {
-          inx = 0;
-        }
-        inx = +inx;
-        id = proj_List[inx].id;
-        vm.proj_name = proj_List[inx].project_name;
+      if (tvIndex < 1) {
+        vm.getRss();
+        vm.showQrcode();
       }
-      console.info(` 当前播放项目： ${inx + 1} / ${proj_List.length}`);
-      if (inx + 1 >= proj_List.length) {
-        inx = -1;
-      }
-      ++inx;
-      next_proj = proj_List[inx];
-      next_proj.inx = inx;
-      vm.id = id;
       vm.isloading = !0;
       function onfail() {
         vm.isloading = !1;
@@ -465,17 +483,17 @@ export default {
         .get(`${apiHost}project/read-projects-record/`, {
           params: {
             token: vm.token,
-            id,
-            page_cap: 30
+            id: projInfo.id,
+            page_cap: 30,
+            tag: projInfo.tv_tags[tvIndex]
           }
         })
         .then(res => {
           vm.isloading = !1;
           if (isOK(res)) {
+            ++vm.tvIndex;
             vm.data = res.data.data.page_data.reverse();
             renderChart(vm);
-            vm.getRss();
-            vm.showQrcode();
           } else {
             onfail();
           }
@@ -490,7 +508,7 @@ export default {
       axios
         .get(`${apiHost}dashboard/get_content/`, {
           params: {
-            pro_id: vm.id,
+            pro_id: vm.projInfo.id,
             token: vm.token
           }
         })
@@ -505,20 +523,17 @@ export default {
     },
     showQrcode() {
       var vm = this;
-      vm.isloading = !0;
       function onfail() {
-        vm.isloading = !1;
         vm.$alert("获取二维码分享链接发生错误", "提示", { type: "error" });
       }
       axios
         .get(`${apiHost}share/get-pro-share-link/`, {
           params: {
             token: vm.token,
-            project_id: vm.id
+            project_id: vm.projInfo.id
           }
         })
         .then(res => {
-          vm.isloading = !1;
           if (isOK(res)) {
             var url =
               location.protocol +
@@ -543,9 +558,11 @@ export default {
   },
   created() {
     var vm = this;
+
     if (!vm.token) {
       return vm.$alert("没有登录", "提示", { type: "error" });
     }
+    app = vm;
     vm.getProjects();
   },
   mounted() {
@@ -567,6 +584,7 @@ export default {
     "sans-serif";
   .proj-title {
     display: flex;
+    position: relative;
     justify-content: center;
     align-items: center;
     height: 220px;
@@ -592,6 +610,16 @@ export default {
       font-weight: 500;
       line-height: 126px;
       text-transform: uppercase;
+    }
+    .tag {
+      position: absolute;
+      padding: 15px 25px;
+      right: 60px;
+      font-size: 60px;
+      font-weight: 500;
+      color: #fff;
+      background: #347eff;
+      border-radius: 10px;
     }
   }
   .proj-display {

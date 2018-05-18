@@ -207,7 +207,7 @@ export default {
     width: 10px;
   }
   .is-admin {
-    color: #d11;
+    color: #999;
   }
   h1 {
     margin: 0;

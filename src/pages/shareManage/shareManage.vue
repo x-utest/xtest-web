@@ -43,6 +43,11 @@
                                 <a target="_blank" :href="'/pro-report-share.html?stoken='+scope.row.stoken">{{scope.row.stoken|SliceString(8)}}</a>
                             </template>
                         </el-table-column>
+                        <el-table-column prop="stoken" label="版本" width="120">
+                            <template scope="scope">
+                        <span :class="'tag-label'+(scope.row.tag=='default'?' def':'')">{{scope.row.tag}}</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="cnt" label="浏览数" width="100"></el-table-column>
                         <el-table-column label="备注">
                             <template scope="scope">
@@ -190,7 +195,10 @@ export default {
           }
           var data = res.data.data;
           vm.isloading = !1;
-          vm.data2 = data.page_data;
+          vm.data2 = data.page_data.map(x => {
+            x.tag = x.tag || "default";
+            return x;
+          });
           vm.totalPage2 = data.page_total_cnts;
         })
         .catch(onfail);
@@ -237,6 +245,15 @@ export default {
     font-size: 2rem;
     margin: 0 1rem 0.6rem 2.5%;
     text-align: left;
+  }
+  .tag-label {
+    padding: 0 8px;
+    background: #4294d5;
+    color: #fff;
+    border-radius: 3px;
+  }
+  .tag-label.def {
+    background: #13ce66;
   }
   .txt-mark {
     margin: 3px 10px 3px 3px;

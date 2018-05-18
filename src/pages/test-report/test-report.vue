@@ -96,7 +96,7 @@ function isOK(res) {
 import { mapState } from "vuex";
 import failures from "../../assets/img/failures.png";
 import errors from "../../assets/img/errors.png";
-import { selectElem } from "../../assets/utils";
+import { Copy } from "../../assets/utils";
 
 export default {
   data() {
@@ -114,7 +114,7 @@ export default {
   methods: {
     doCopy() {
       var vm = this;
-      if (selectElem(vm.$el.querySelector(".share-url"), 1)) {
+      if (Copy(vm.shareUrl)) {
         return vm.$message("复制成功");
       }
       vm.$alert("复制失败，请自行复制", "提示", { type: "error" });
