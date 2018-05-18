@@ -1,6 +1,6 @@
 <template>
   <div class="sysinfo-main" v-loading.body="isloading">
-    <h2>系统信息</h2>
+    <h1>系统信息</h1>
     <!-- <div class="row">
         <span class="lf">app_id</span>
         <div v-if="organize.app_id" class="rt">
@@ -89,43 +89,42 @@ export default {
 </script>
 <style scoped lang=less rel="stylesheet/less">
 .sysinfo-main {
-  h2 {
-    margin: 20px auto;
+  h1 {
+    margin: 10px;
+  }
+  .table-sysinfo {
+    margin: 1rem auto;
     width: 80%;
-  }
-}
-.table-sysinfo {
-  margin: 1rem auto;
-  width: 80%;
-  border-collapse: collapse;
-  caption {
-    display: block;
-    font-size: 2rem;
-    margin: 1rem auto 0.6rem auto;
-    width: 95%;
-    text-align: left;
-  }
-  tbody {
-    tr {
-      background-color: #fff;
-    }
-    tr:hover {
-      background-color: #e6e6e6;
-    }
-    tr:nth-child(odd) {
-      background-color: #f5f5f5;
-    }
-    td {
-      height: 2rem;
-      border-bottom: 1px solid #ddd;
-      border-right: 1px solid #ddd;
-      border-left: 1px solid #ddd;
-      text-align: center;
-      padding: 8px;
-      padding-left: 2rem;
-    }
-    tr td:last-child {
+    border-collapse: collapse;
+    caption {
+      display: block;
+      font-size: 2rem;
+      margin: 1rem auto 0.6rem auto;
+      width: 95%;
       text-align: left;
+    }
+    tbody {
+      tr {
+        background-color: #fff;
+      }
+      tr:hover {
+        background-color: #e6e6e6;
+      }
+      tr:nth-child(odd) {
+        background-color: #f5f5f5;
+      }
+      td {
+        height: 2rem;
+        border-bottom: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-left: 1px solid #ddd;
+        text-align: center;
+        padding: 8px;
+        padding-left: 2rem;
+      }
+      tr td:last-child {
+        text-align: left;
+      }
     }
   }
 }

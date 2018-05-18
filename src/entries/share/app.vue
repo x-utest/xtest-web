@@ -110,8 +110,8 @@ import { queryParser } from "../../assets/utils";
 import { mapState } from "vuex";
 import { apiHost as serverUrl } from "../../config";
 import pageConfig from "../../sysConfig/page";
-
-var qs = queryParser();
+var echarts = require("echarts"),
+ qs = queryParser();
 export default {
   data() {
     return {
@@ -157,8 +157,6 @@ export default {
           var ds = res.data.data;
           ds.details.map(x => (x.show = !1));
           vm.details = ds;
-          var echarts = require("echarts");
-          return;
           vm.$nextTick(() => {
             var myChart = echarts.init(document.getElementById("ng-echart"));
             myChart.setOption({

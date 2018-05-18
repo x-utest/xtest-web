@@ -34,7 +34,7 @@ const routes = [
     { path: '/testChart', component: testChart },
     { path: '/shareManage', component: shareManage },
     { path: '/userControl', component: userControl },
-    { path: '/', component: home }
+    { path: '/', component: decision }
 ];
 
 export default new VueRouter({

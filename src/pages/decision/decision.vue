@@ -1,6 +1,8 @@
 <template>
     <div class="decision" v-loading.body="isloading">
+      <div>
         <h1>判定测试详细信息</h1>
+        <span class="mark l20">筛选项目:</span>
         <el-dropdown @command="handleCommand">
             <span class="el-dropdown-link">
                 {{currentProject.alias}}
@@ -11,7 +13,16 @@
                 </el-dropdown-item>
             </el-dropdown-menu>
         </el-dropdown>
-    
+        <div class="mark 120" v-if="currentProject.tags.length>0">
+          <span class="l20">筛选版本:</span>
+        <el-checkbox-group v-model="checkTags"  class="mark">
+          <div v-for="x in currentProject.tags" class="mark" style="margin-left:10px;">
+          <el-checkbox :label="x"></el-checkbox>
+              </div>
+      </el-checkbox-group>
+    <el-button type="primary" size="mini" class="l20" style="padding:5px 10px" @click="getTests()">筛选</el-button>
+    </div>
+  </div>
         <el-table :data="data" border style="width:90%;margin:10px 20px">
             <el-table-column type="index" width="60">
             </el-table-column>
@@ -84,7 +95,8 @@ export default {
       pageNum: 1,
       totalPage: 10,
       projectItem: [],
-      currentProject: { alias: "全部项目", id: "" },
+      currentProject: { alias: "全部项目", id: "", tags: [] },
+      checkTags: [],
       message: "",
       url: "",
       dialogVisible: !1
@@ -94,12 +106,15 @@ export default {
     ...mapState(["serverUrl", "token", "loginUser"])
   },
   methods: {
-    getProjectInfo(num) {
+    getTests(num) {
       var vm = this,
+        num = num || vm.pageNum,
+        tag = vm.checkTags,
         projId = vm.currentProject.id,
         params = {
           page_idx: num,
-          token: vm.token
+          token: vm.token,
+          tag
         };
       vm.isloading = !0;
       projId && (params.pro_id = projId);
@@ -107,6 +122,7 @@ export default {
         vm.isloading = !1;
         vm.$alert("获取项目信息发生错误", "提示", { type: "error" });
       }
+
       vm.$http
         .get(`${vm.serverUrl}testdata/list-test-data/`, { params })
         .then(res => {
@@ -131,28 +147,23 @@ export default {
     handleCurrentChange(page) {
       //pageNum变成当前的，然后toggle时候才能还原为1，不然一直没变都是默认的1，数据驱动
       this.pageNum = page;
-      console.log(`当前页: ${page}`);
-      this.getProjectInfo(page);
+      this.getTests(page);
     },
-    handleCommand(projItemId) {
+    handleCommand(projId) {
       var vm = this;
+      if (vm.currentProject.id == projId) {
+        return;
+      }
+      vm.checkTags = [];
+      var matchs = vm.projectItem.find(x => x.id == projId);
       vm.currentProject = {
-        id: projItemId,
-        alias: (vm.projectItem.find(x => x.id == projItemId) || {}).project_name
+        id: projId,
+        alias: (matchs || 1).project_name,
+        tags: ((matchs || 1).tags || []).slice(0)
       };
       //刷新获取新数据
-      vm.$http
-        .get(`${vm.serverUrl}testdata/list-test-data/`, {
-          params: {
-            page_idx: vm.pageNum,
-            token: vm.token,
-            pro_id: projItemId
-          }
-        })
-        .then(res => {
-          vm.data = res.data.data.page_data;
-          vm.totalPage = res.data.data.page_total_cnts;
-        });
+      vm.pageNum = 1;
+      vm.getTests();
     },
     del(id) {
       var vm = this;
@@ -168,7 +179,7 @@ export default {
             })
             .then(res => {
               if (isOK(res)) {
-                vm.getProjectInfo();
+                vm.getTests();
               } else {
                 vm.$alert(`删除失败\n${res.data.data}`);
               }
@@ -195,7 +206,7 @@ export default {
     }
   },
   created() {
-    this.getProjectInfo(1);
+    this.getTests(1);
     this.getProject();
   }
 };
@@ -203,7 +214,6 @@ export default {
 
 <style scoped lang=less rel="stylesheet/less">
 @import "../../assets/public.less";
-
 .decision {
   background-color: #f6f9f9;
   :host {
@@ -211,15 +221,33 @@ export default {
     text-align: center;
     font-size: 1rem;
   }
+  .mark {
+    display: inline-block;
+  }
+  .l20 {
+    margin: 0 10px 0 20px;
+  }
   h1 {
     float: left;
     font-size: 2rem;
     margin: 0 1rem 0.6rem 2.5%;
     text-align: left;
   }
-  .relative{position: relative}
-  .tag-label{position:absolute;padding:0 8px;top:0;right:0;background: #4294d5;color: #fff;border-radius: 3px;}
-  .tag-label.def{background: #13ce66;}
+  .relative {
+    position: relative;
+  }
+  .tag-label {
+    position: absolute;
+    padding: 0 8px;
+    top: 0;
+    right: 0;
+    background: #4294d5;
+    color: #fff;
+    border-radius: 3px;
+  }
+  .tag-label.def {
+    background: #13ce66;
+  }
 
   .el-pagination {
     padding-left: 26px;

@@ -1,8 +1,5 @@
 <template>
     <div class="ggd-nav">
-        <div class="logo">
-            <router-link to="/" class="rlink"> xtest系统</router-link>
-            </div>
         <div class="link-box">
             <div class="entries">
                 <div class="first-level">
@@ -21,6 +18,7 @@
               <div class="first-level">
                 <div class="title"><span class="icon icon-setting"></span>关于系统</div>
                 <router-link to="/sysinfo" class="second-level"> 系统信息</router-link>
+                <a :href="docLink" class="second-level" target="_blank">在线文档</a>
               </div>
             </div>
         </div>
@@ -32,7 +30,11 @@
 </template>
 <script>
 import { mapState } from "vuex";
+import { docLink } from "../sysConfig/page";
 export default {
+  data() {
+    return { docLink };
+  },
   computed: {
     ...mapState(["serverUrl", "token", "loginUser"])
   }
@@ -42,7 +44,7 @@ export default {
 <style lang=less rel="stylesheet/less">
 @import "../assets/public.less";
 @import "../../config/bootstrap.config.less";
-@list-padding-left: 4*@ggd-grid-width;
+@list-padding-left: 4 * @ggd-grid-width;
 
 .ggd-nav {
   display: flex;
@@ -50,7 +52,7 @@ export default {
   width: @nav-width;
   min-height: 668px;
   padding-top: @gtt-header;
-  padding-bottom: 5.5*@ggd-grid-width;
+  padding-bottom: 5.5 * @ggd-grid-width;
   box-sizing: border-box;
   font-size: 14px;
   color: #fff;
@@ -59,15 +61,9 @@ export default {
   position: fixed;
   overflow-y: auto;
   height: 100%;
-  z-index: 20199;
+  z-index: 9;
   .hide {
     display: none !important;
-  }
-  .logo {
-    height: 4*@ggd-grid-width;
-    flex: none;
-    line-height: 4*@ggd-grid-width;
-    padding-left: @list-padding-left;
   }
   .rlink {
     display: block;
@@ -81,9 +77,7 @@ export default {
     flex-direction: column;
     justify-content: space-between;
     width: 100%;
-    // height: 600px;
     flex-grow: 1;
-    padding-top: 3.5*@ggd-grid-width;
     .first-level {
       display: flex;
       flex-direction: column;

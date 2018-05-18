@@ -1,5 +1,6 @@
 <template>
     <div class="user-info" v-loading.body="isloading">
+      <h1>用户信息管理</h1>
         <div class="container">
             <div class="row mute">
                 <span class="lf">用户昵称</span>
@@ -335,6 +336,7 @@ export default {
 </script>
 <style scoped lang=less rel="stylesheet/less">
 .user-info {
+  h1{margin:10px}
   .container {
     min-height: 89vh;
     width: 80%;

@@ -25,6 +25,7 @@ export default {
   position: fixed;
   width: 100%;
   bottom: 0px;
+  z-index: 10;
   & > span {
     margin-left: 3*@ggd-grid-width;
   }
