@@ -163,13 +163,13 @@ function isOK(rsp) {
   var a = rsp.data;
   return a && a.code == 200;
 }
-import Sortable from "Sortablejs";
+// import Sortable from "Sortablejs";
 function bindSort(dom) {
   return;
-  Sortable.create(document.querySelector(".tag-list"), {
-    //handle: '.drag-handle',
-    animation: 150
-  });
+  // Sortable.create(document.querySelector(".tag-list"), {
+  //   //handle: '.drag-handle',
+  //   animation: 150
+  // });
 }
 
 import { mapState } from "vuex";
