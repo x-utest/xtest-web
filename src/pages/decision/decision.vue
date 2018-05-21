@@ -86,6 +86,7 @@ function isOK(rsp) {
   var a = rsp.data;
   return a && a.code == 200;
 }
+import qs from "qs";
 import { mapState, mapMutations, mapActions } from "vuex";
 export default {
   data() {
@@ -124,7 +125,12 @@ export default {
       }
 
       vm.$http
-        .get(`${vm.serverUrl}testdata/list-test-data/`, { params })
+        .get(`${vm.serverUrl}testdata/list-test-data/`, {
+          params,
+          paramsSerializer(p) {
+            return qs.stringify(p, { indices: !1 });
+          }
+        })
         .then(res => {
           vm.isloading = !1;
           if (isOK(res)) {
