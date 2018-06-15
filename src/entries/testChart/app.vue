@@ -32,35 +32,32 @@ import Qrcode from "../../assets/qrcode.js";
 import { queryParser } from "../../assets/utils";
 import { apiHost as serverUrl } from "../../config";
 import pageConfig from "../../sysConfig/page";
-var ui;
+var ui = {};
 
 function AllotChartHeight() {
-  if (!ui) {
-    ui = {
-      echart1: document.getElementById("vx-echart1"),
-      echart2: document.getElementById("vx-echart2")
-    };
+  if (!ui.e1) {
+    ui.e1 = document.getElementById("vx-echart1");
   }
-  ui.echart1.innerHTML = "";
-  ui.echart2.innerHTML = "";
+  if (!ui.e2) {
+    ui.e2 = document.getElementById("vx-echart2");
+  }
   var avaliHeight = innerHeight - 310,
-    h1 = ~~(avaliHeight / 2 - 20),
+    h1 = ~~(avaliHeight / 2 - 10),
     h2 = avaliHeight - h1;
-  ui.echart1.style.height = h1 + "px";
-  ui.echart2.style.height = h2 + "px";
+  ui.e1.style.height = h1 + "px";
+  ui.e2.style.height = h2 + "px";
 }
 
 function isOK(res) {
   return res.data && res.data.code == 200;
 }
 
-var echarts = require("echarts");
-function renderChart(vm) {
-  var myChart1 = echarts.init(ui.echart1),
-    myChart2 = echarts.init(ui.echart2),
-    colors = ["#f00", "#d14a61", "#ac5"],
-    Data = vm.data,
-    xMarks=Data.map((v,i)=>++i),
+var echarts = require("echarts"),
+  chartBinds;
+function renderChart() {
+  var colors = ["#f00", "#d14a61", "#ac5"],
+    Data = chartBinds,
+    xMarks = Data.map((v, i) => ++i),
     Total = Data.map(v => v.total),
     Skipped = Data.map(v => v.skipped),
     Errors = Data.map(v => v.errors),
@@ -84,7 +81,13 @@ function renderChart(vm) {
                         `;
     };
   Max = Math.max.apply(null, Max);
-  myChart1.setOption({
+  if (!ui.m1) {
+    ui.m1 = echarts.init(ui.e1);
+  }
+  if (!ui.m2) {
+    ui.m2 = echarts.init(ui.e2);
+  }
+  ui.m1.setOption({
     color: colors,
     // title: {
     //     text: '用例增长图'
@@ -100,14 +103,17 @@ function renderChart(vm) {
       show: true,
       feature: { saveAsImage: {} }
     },
+    legend: {
+      data: ["总次数"]
+    },
     grid: {
-      top: 70,
-      bottom: 50
+      top: 30,
+      bottom: 20
     },
     xAxis: {
       type: "category",
       boundaryGap: !1,
-      data:xMarks
+      data: xMarks
     },
     yAxis: {
       type: "value"
@@ -121,7 +127,8 @@ function renderChart(vm) {
       }
     ]
   });
-  myChart2.setOption({
+
+  ui.m2.setOption({
     color: colors,
     // title: {
     //     text: 'Bug消减图'
@@ -141,8 +148,8 @@ function renderChart(vm) {
       data: ["错误次数", "失败次数", "跳过次数"]
     },
     grid: {
-      top: 70,
-      bottom: 50
+      top: 40,
+      bottom: 20
     },
     xAxis: {
       type: "category",
@@ -153,29 +160,33 @@ function renderChart(vm) {
       type: "value"
     },
     series: [
-      {
-        name: "错误次数",
-        type: "line",
-        smooth: true,
-        data: Errors
-      },
-      {
-        name: "失败次数",
-        type: "line",
-        smooth: true,
-        data: Filures
-      },
-      {
-        name: "跳过次数",
-        type: "line",
-        smooth: true,
-        data: Skipped
-      }
-    ]
+      ["错误次数", Errors],
+      ["失败次数", Filures],
+      ["跳过次数", Skipped]
+    ].map(x => ({
+      name: x[0],
+      type: "line",
+      smooth: true,
+      data: x[1]
+    }))
   });
 }
-var qs = queryParser();
-
+var qs = queryParser(),
+  resizeId;
+window.onresize = function() {
+  if (resizeId > 0) {
+    clearTimeout(resizeId);
+  }
+  resizeId = setTimeout(function() {
+    AllotChartHeight();
+    if (ui.m1) {
+      ui.m1.resize();
+    }
+    if (ui.m2) {
+      ui.m2.resize();
+    }
+  }, 1e2);
+};
 export default {
   data() {
     return {
@@ -183,7 +194,7 @@ export default {
       proj_name: "",
       data: [],
       isloading: !0,
-      version:pageConfig.version
+      version: pageConfig.version
     };
   },
   methods: {
@@ -217,7 +228,8 @@ export default {
             vm.data = res.data.data.page_data.reverse();
             vm.proj_name = (vm.data[0] || {}).pro_name;
             AllotChartHeight();
-            renderChart(vm);
+            chartBinds = vm.data;
+            renderChart();
           } else {
             onfail();
           }
