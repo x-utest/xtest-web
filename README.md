@@ -1,4 +1,4 @@
-#gtt-web-apps
+#xtest-web-apps
 
 ## 18/6/15
   修复 [分享页面] 图表高度坍塌问题
